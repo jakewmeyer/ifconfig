@@ -20,6 +20,7 @@ type IPAddress struct {
 
 func handleIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
+	fmt.Println(r.Header.Get("X-Forwarded-For"));
 	if ip == nil {
 		http.Error(w, "Invalid Request", http.StatusBadRequest)
 		return
@@ -36,18 +37,18 @@ func handleIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 }
 
 func main() {
-	mux := httprouter.New()
+	router := httprouter.New()
 	n := negroni.New()
 
 	// Middleware
-	n.UseHandler(mux)
+	n.UseHandler(router)
 	n.Use(cors.Default())
 	if os.Getenv("APP_ENV") != "production" {
 		n.Use(negroni.NewLogger())
 	}
 	
 	// Routes
-	mux.GET("/", handleIP)
+	router.GET("/", handleIP)
 
 	// Server start
 	port := os.Getenv("PORT")
