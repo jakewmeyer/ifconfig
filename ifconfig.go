@@ -20,7 +20,6 @@ type IPAddress struct {
 
 func handleIP(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
 	ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
-	fmt.Println(r.Header.Get("X-Forwarded-For"));
 	if ip == nil {
 		http.Error(w, "Invalid Request", http.StatusBadRequest)
 		return
