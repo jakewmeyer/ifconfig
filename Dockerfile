@@ -1,4 +1,3 @@
-# build stage
 FROM golang:latest as builder
 
 LABEL maintainer="jakewmeyer@gmail.com"
