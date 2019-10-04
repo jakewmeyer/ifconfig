@@ -1,4 +1,4 @@
-package main
+package ip
 
 import "testing"
 import "github.com/julienschmidt/httprouter"
@@ -6,9 +6,9 @@ import "github.com/stretchr/testify/assert"
 import "net/http"
 import "net/http/httptest"
 
-func TestGetIpPlain(t *testing.T) {
+func TestTransformPlaintext(t *testing.T) {
 	router := httprouter.New()
-	router.GET("/", handleIP)
+	router.HandlerFunc("GET", "/", Transform)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
@@ -19,9 +19,20 @@ func TestGetIpPlain(t *testing.T) {
 	assert.Equal(t, "192.168.1.124", rr.Body.String(), "should return an ip address")
 }
 
-func TestGetMultipleIp(t *testing.T) {
+func TestTransformJson(t *testing.T) {
 	router := httprouter.New()
-	router.GET("/", handleIP)
+	router.HandlerFunc("GET", "/", Transform)
+
+	req, _ := http.NewRequest("GET", "/", nil)
+	rr := httptest.NewRecorder()
+
+	router.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusBadRequest, rr.Code, "should return a 400 status")
+}
+
+func TestTransformMultipleIp(t *testing.T) {
+	router := httprouter.New()
+	router.HandlerFunc("GET", "/", Transform)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124,10.0.0.1")
@@ -32,9 +43,9 @@ func TestGetMultipleIp(t *testing.T) {
 	assert.Equal(t, "192.168.1.124", rr.Body.String(), "should return an ip address")
 }
 
-func TestGetNoIp(t *testing.T) {
+func TestTransformNoIp(t *testing.T) {
 	router := httprouter.New()
-	router.GET("/", handleIP)
+	router.HandlerFunc("GET", "/", Transform)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
