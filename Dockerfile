@@ -34,4 +34,4 @@ ENV APP_ENV production
 
 ENTRYPOINT ["/ifconfig"]
 
-HEALTHCHECK CMD curl --fail --header "x-forwarded-for: 192.168.1.1" http://localhost:7000 || exit 1
+HEALTHCHECK CMD curl --silent --fail --header "x-forwarded-for: 192.168.1.1" http://localhost:7000 || exit 1
