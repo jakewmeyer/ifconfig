@@ -13,8 +13,11 @@ RUN groupadd -r app && useradd -r -g app app
 # Build flags to strip debug info
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ifconfig
 
-# tiny base image
-FROM scratch
+# Build smaller base image
+FROM alpine:latest
+
+# Add curl for healthcheck
+RUN apk --update add curl
 
 WORKDIR /
 
@@ -30,3 +33,5 @@ USER app
 ENV APP_ENV production
 
 ENTRYPOINT ["/ifconfig"]
+
+HEALTHCHECK CMD curl --fail --header "x-forwarded-for: 192.168.1.1" http://localhost:7000 || exit 1
