@@ -1,4 +1,9 @@
+image: golang:1.13
+
+stages:
+  - test
+
 test:
-  image: golang:1.13
+  stage: test
   script:
     - go test -cover ./...
