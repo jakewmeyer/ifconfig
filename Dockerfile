@@ -1,4 +1,4 @@
-FROM golang:latest as builder
+FROM golang:alpine as builder
 
 LABEL maintainer="jakewmeyer@gmail.com"
 
