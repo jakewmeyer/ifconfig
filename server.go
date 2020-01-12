@@ -21,11 +21,10 @@ func main() {
 
 	// CORS
 	cors := cors.New(cors.Options{
-    AllowedOrigins:   []string{"*"},
-    AllowedMethods:   []string{"GET"},
-    AllowCredentials: true,
-  })
-  r.Use(cors.Handler)
+		AllowedOrigins: []string{"*"},
+		AllowedMethods: []string{"GET"},
+	})
+	r.Use(cors.Handler)
 
 	// Routes
 	r.Get("/", ip.Get)
