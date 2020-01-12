@@ -1,13 +1,14 @@
 package main
 
 import (
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/cors"
 	"ifconfig/ip"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 )
 
 func main() {

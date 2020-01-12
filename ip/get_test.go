@@ -1,10 +1,13 @@
 package ip
 
-import "testing"
-import "github.com/go-chi/chi"
-import "github.com/stretchr/testify/assert"
-import "net/http"
-import "net/http/httptest"
+import (
+	"net/http"
+	"net/http/httptest"
+	"testing"
+
+	"github.com/go-chi/chi"
+	"github.com/stretchr/testify/assert"
+)
 
 func TestGetPlaintext(t *testing.T) {
 	r := chi.NewRouter()
