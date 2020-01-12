@@ -26,6 +26,18 @@ func TestGetJson(t *testing.T) {
 	r := chi.NewRouter()
 	r.Get("/", Get)
 
+	req, _ := http.NewRequest("GET", "/?json", nil)
+	req.Header.Set("x-forwarded-for", "192.168.1.124")
+	rr := httptest.NewRecorder()
+
+	r.ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code, "should return a 200 status")
+}
+
+func TestGetNoHeader(t *testing.T) {
+	r := chi.NewRouter()
+	r.Get("/", Get)
+
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
 
