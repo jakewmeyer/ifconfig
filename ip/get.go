@@ -24,9 +24,13 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	// Plaintext by default, JSON with query param
 	if _, ok := r.URL.Query()["json"]; ok {
 		w.Header().Set("Content-Type", "application/json")
-		json.NewEncoder(w).Encode(Address{ip.String()})
+		err := json.NewEncoder(w).Encode(Address{ip.String()})
+		if err != nil {
+			http.Error(w, "Invalid Request", http.StatusBadRequest)
+			return
+		}
 		return
 	}
 	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintf(w, ip.String())
+	fmt.Fprintf(w, "%s", ip.String())
 }
