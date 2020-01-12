@@ -1,9 +1,9 @@
 package main
 
 import (
-	"github.com/julienschmidt/httprouter"
-	"github.com/rs/cors"
-	"github.com/urfave/negroni"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/cors"
 	"ifconfig/ip"
 	"log"
 	"net/http"
@@ -11,19 +11,24 @@ import (
 )
 
 func main() {
-	router := httprouter.New()
-	n := negroni.New()
+	r := chi.NewRouter()
 
 	// Middleware
-	n.UseHandler(router)
-	n.Use(negroni.NewRecovery())
-	n.Use(cors.Default())
-	if os.Getenv("APP_ENV") != "production" {
-		n.Use(negroni.NewLogger())
-	}
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+
+	// CORS
+	cors := cors.New(cors.Options{
+    AllowedOrigins:   []string{"*"},
+    AllowedMethods:   []string{"GET"},
+    AllowCredentials: true,
+  })
+  r.Use(cors.Handler)
 
 	// Routes
-	router.HandlerFunc("GET", "/", ip.Transform)
+	r.Get("/", ip.Get)
 
 	// Server start
 	port := os.Getenv("PORT")
@@ -31,5 +36,5 @@ func main() {
 		port = "7000"
 	}
 	log.Println("Starting on port: ", port)
-	log.Fatal(http.ListenAndServe(":"+port, n))
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }

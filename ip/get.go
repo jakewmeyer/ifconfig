@@ -13,8 +13,8 @@ type Address struct {
 	IP string `json:"ip"`
 }
 
-// Transform a header into a IP address response
-func Transform(w http.ResponseWriter, r *http.Request) {
+// Get a valid IP address from an x-forwarded-for header
+func Get(w http.ResponseWriter, r *http.Request) {
 	ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
 	if ip == nil {
 		http.Error(w, "Invalid Request", http.StatusBadRequest)
