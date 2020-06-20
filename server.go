@@ -60,7 +60,7 @@ func main() {
 			log.Fatal(err)
 		}
 	}()
-	log.Printf("Starting on earth at: %v", port)
+	log.Printf("Starting on: %v", port)
 
 	<-stop
 
