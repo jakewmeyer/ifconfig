@@ -47,3 +47,9 @@ Icon
 Network Trash Folder
 Temporary Items
 .apdisk
+
+.gitignore
+Dockerfile
+README.md
+LICENSE
+.github
