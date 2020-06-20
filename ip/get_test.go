@@ -15,6 +15,7 @@ func TestGetPlaintext(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
+
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
@@ -28,10 +29,12 @@ func TestGetJson(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/?json", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
+
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
 	assert.Equal(t, http.StatusOK, rr.Code, "should return a 200 status")
+	assert.Equal(t, "{\"ip\":\"192.168.1.124\"}\n", rr.Body.String(), "should return an ip address in json format")
 }
 
 func TestGetNoHeader(t *testing.T) {
@@ -51,6 +54,7 @@ func TestGetMultipleIp(t *testing.T) {
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124,10.0.0.1")
+
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)

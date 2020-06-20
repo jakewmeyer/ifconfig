@@ -1,24 +1,31 @@
 package main
 
 import (
+	"context"
+	"errors"
 	"ifconfig/ip"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 )
 
+const ContextTimeout = 10
+
 func main() {
 	r := chi.NewRouter()
 
 	// Middleware
 	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
+	r.Use(middleware.RedirectSlashes)
+	r.Use(middleware.Heartbeat("/health"))
+	r.Use(middleware.Logger)
 
 	// CORS
 	cors := cors.New(cors.Options{
@@ -27,14 +34,39 @@ func main() {
 	})
 	r.Use(cors.Handler)
 
-	// Routes
-	r.Get("/", ip.Get)
+	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
+	defer cancel()
 
-	// Server start
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7000"
 	}
-	log.Println("Starting on port: ", port)
-	log.Fatal(http.ListenAndServe(":"+port, r))
+
+	srv := &http.Server{
+		Addr:    ":" + port,
+		Handler: r,
+	}
+
+	// Routes
+	r.Get("/", ip.Get)
+
+	// Handle graceful shutdown
+	stop := make(chan os.Signal, 1)
+	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+
+	// Run listen in goroutine to catch signal
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			log.Fatal(err)
+		}
+	}()
+	log.Printf("Starting on earth at: %v", port)
+
+	<-stop
+
+	if err := srv.Shutdown(ctx); err != nil {
+		log.Fatalf("Server Shutdown Failed:%+v", err)
+	}
+
+	log.Print("Server Exited Properly")
 }
