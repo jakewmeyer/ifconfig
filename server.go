@@ -56,11 +56,11 @@ func main() {
 
 	// Run listen in goroutine to catch signal
 	go func() {
+		log.Printf("Starting on: %v", port)
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}
 	}()
-	log.Printf("Starting on: %v", port)
 
 	<-stop
 
