@@ -1,6 +1,7 @@
-package ip
+package ip_test
 
 import (
+	"ifconfig/ip"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -10,8 +11,10 @@ import (
 )
 
 func TestGetPlaintext(t *testing.T) {
+	t.Parallel()
+
 	r := chi.NewRouter()
-	r.Get("/", Get)
+	r.Get("/", ip.Get)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
@@ -24,8 +27,10 @@ func TestGetPlaintext(t *testing.T) {
 }
 
 func TestGetJson(t *testing.T) {
+	t.Parallel()
+
 	r := chi.NewRouter()
-	r.Get("/", Get)
+	r.Get("/", ip.Get)
 
 	req, _ := http.NewRequest("GET", "/?json", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
@@ -38,8 +43,10 @@ func TestGetJson(t *testing.T) {
 }
 
 func TestGetNoHeader(t *testing.T) {
+	t.Parallel()
+
 	r := chi.NewRouter()
-	r.Get("/", Get)
+	r.Get("/", ip.Get)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
@@ -49,8 +56,10 @@ func TestGetNoHeader(t *testing.T) {
 }
 
 func TestGetMultipleIp(t *testing.T) {
+	t.Parallel()
+
 	r := chi.NewRouter()
-	r.Get("/", Get)
+	r.Get("/", ip.Get)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124,10.0.0.1")
@@ -63,8 +72,10 @@ func TestGetMultipleIp(t *testing.T) {
 }
 
 func TestGetNoIp(t *testing.T) {
+	t.Parallel()
+
 	r := chi.NewRouter()
-	r.Get("/", Get)
+	r.Get("/", ip.Get)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()

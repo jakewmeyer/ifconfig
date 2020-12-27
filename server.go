@@ -34,9 +34,6 @@ func main() {
 	})
 	r.Use(cors.Handler)
 
-	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
-	defer cancel()
-
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7000"
@@ -51,12 +48,16 @@ func main() {
 	r.Get("/", ip.Get)
 
 	// Handle graceful shutdown
+	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
+	defer cancel()
+
 	stop := make(chan os.Signal, 1)
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	// Run listen in goroutine to catch signal
 	go func() {
 		log.Printf("Starting on: %v", port)
+
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			log.Fatal(err)
 		}

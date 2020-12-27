@@ -25,7 +25,7 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	if _, ok := r.URL.Query()["json"]; ok {
 		w.Header().Set("Content-Type", "application/json")
 
-		err := json.NewEncoder(w).Encode(Address{ip.String()})
+		err := json.NewEncoder(w).Encode(Address{IP: ip.String()})
 
 		if err != nil {
 			http.Error(w, "Invalid Request", http.StatusBadRequest)
