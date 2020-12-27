@@ -59,14 +59,14 @@ func main() {
 		log.Printf("Starting on: %v", port)
 
 		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Fatal(err)
+			log.Panic(err)
 		}
 	}()
 
 	<-stop
 
 	if err := srv.Shutdown(ctx); err != nil {
-		log.Printf("Server Shutdown Failed:%+v", err)
+		log.Panicf("Server Shutdown Failed:%+v", err)
 	}
 
 	log.Print("Server Exited Properly")
