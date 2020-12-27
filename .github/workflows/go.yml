@@ -1,5 +1,5 @@
 on: [push, pull_request]
-name: test and build
+name: test
 jobs:
   lint:
     runs-on: ubuntu-latest
@@ -54,23 +54,3 @@ jobs:
       with:
           github-token: ${{ secrets.github_token }}
           path-to-lcov: coverage.lcov
-
-  build:
-    runs-on: ubuntu-latest
-    needs: [lint, test]
-    steps:
-    - name: Install Go
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.15.x
-    - name: Checkout code
-      uses: actions/checkout@v1
-    - name: build
-      run: |
-        export GO111MODULE=on
-        GOOS=linux GOARCH=amd64 go build -o bin/ci-test-linux-amd64
-    - name: upload artifacts
-      uses: actions/upload-artifact@master
-      with:
-        name: binaries
-        path: bin/
