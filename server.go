@@ -1,73 +1,44 @@
 package main
 
 import (
-	"context"
-	"errors"
-	"ifconfig/ip"
 	"log"
 	"net/http"
-	"os"
-	"os/signal"
-	"syscall"
+	"time"
 
 	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
-	"github.com/go-chi/cors"
+	"go.uber.org/zap"
 )
 
-const ContextTimeout = 10
+type server struct {
+	router *chi.Mux
+	logger *zap.Logger
+	srv    *http.Server
+}
 
-func main() {
-	r := chi.NewRouter()
-
-	// Middleware
-	r.Use(middleware.RequestID)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.RedirectSlashes)
-	r.Use(middleware.Heartbeat("/health"))
-	r.Use(middleware.Logger)
-
-	// CORS
-	cors := cors.New(cors.Options{
-		AllowedOrigins: []string{"*"},
-		AllowedMethods: []string{"GET"},
-	})
-	r.Use(cors.Handler)
-
-	port := os.Getenv("PORT")
-	if port == "" {
-		port = "7000"
+func newServer(listenAddr string) (*server, error) {
+	logger, err := zap.NewProduction()
+	if err != nil {
+		log.Panicf("Can't initialize zap logger: %v", err)
 	}
 
-	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: r,
+	errorLog, err := zap.NewStdLogAt(logger, zap.ErrorLevel)
+	if err != nil {
+		log.Panicf("Can't initialize zap error logger: %v", err)
 	}
 
-	// Routes
-	r.Get("/", ip.Get)
-
-	// Handle graceful shutdown
-	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
-	defer cancel()
-
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
-	// Run listen in goroutine to catch signal
-	go func() {
-		log.Printf("Starting on: %v", port)
-
-		if err := srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Panic(err)
-		}
-	}()
-
-	<-stop
-
-	if err := srv.Shutdown(ctx); err != nil {
-		log.Panicf("Server Shutdown Failed:%+v", err)
+	server := &server{
+		router: chi.NewRouter(),
+		logger: logger,
 	}
 
-	log.Print("Server Exited Properly")
+	server.srv = &http.Server{
+		Addr:         listenAddr,
+		Handler:      routes(server),
+		ErrorLog:     errorLog,
+		ReadTimeout:  5 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  15 * time.Second,
+	}
+
+	return server, nil
 }
