@@ -24,9 +24,7 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: v1.36
-      run: |
-        export PATH=$PATH:$(go env GOPATH)/bin
-        golangci-lint -E govet,bodyclose,misspell,gocyclo,dupl,golint,unconvert,gocritic,interfacer run
+        args: -E govet,bodyclose,misspell,gocyclo,dupl,golint,unconvert,gocritic,interfacer run
     - name: Run tests
       run: go test -v ./...
     - name: Build image
