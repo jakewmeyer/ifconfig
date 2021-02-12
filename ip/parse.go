@@ -10,14 +10,14 @@ import (
 
 // Address representation.
 type Address struct {
-	IP string `json:"ip"`
+	IP net.IP `json:"ip"`
 }
 
-// Get a valid IP address from an x-forwarded-for header.
-func Get(w http.ResponseWriter, r *http.Request) {
+// Parse a valid IP address from an x-forwarded-for header.
+func Parse(w http.ResponseWriter, r *http.Request) {
 	ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
 	if ip == nil {
-		http.Error(w, "Error parsing IP address", http.StatusBadRequest)
+		http.Error(w, "Error parsing IP address", http.StatusInternalServerError)
 		return
 	}
 
@@ -25,10 +25,10 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	if _, ok := r.URL.Query()["json"]; ok {
 		w.Header().Set("Content-Type", "application/json")
 
-		err := json.NewEncoder(w).Encode(Address{IP: ip.String()})
+		err := json.NewEncoder(w).Encode(Address{IP: ip})
 
 		if err != nil {
-			http.Error(w, "Invalid Request", http.StatusBadRequest)
+			http.Error(w, "Invalid Request", http.StatusInternalServerError)
 			return
 		}
 
@@ -36,5 +36,5 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Header().Set("Content-Type", "text/plain")
-	fmt.Fprintf(w, "%s", ip.String())
+	fmt.Fprint(w, ip)
 }

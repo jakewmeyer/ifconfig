@@ -10,11 +10,11 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetPlaintext(t *testing.T) {
+func TestReturnPlaintext(t *testing.T) {
 	t.Parallel()
 
 	r := chi.NewRouter()
-	r.Get("/", ip.Get)
+	r.Get("/", ip.Parse)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
@@ -26,11 +26,11 @@ func TestGetPlaintext(t *testing.T) {
 	assert.Equal(t, "192.168.1.124", rr.Body.String(), "should return an ip address")
 }
 
-func TestGetJson(t *testing.T) {
+func TestParseJson(t *testing.T) {
 	t.Parallel()
 
 	r := chi.NewRouter()
-	r.Get("/", ip.Get)
+	r.Get("/", ip.Parse)
 
 	req, _ := http.NewRequest("GET", "/?json", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
@@ -42,24 +42,24 @@ func TestGetJson(t *testing.T) {
 	assert.Equal(t, "{\"ip\":\"192.168.1.124\"}\n", rr.Body.String(), "should return an ip address in json format")
 }
 
-func TestGetNoHeader(t *testing.T) {
+func TestParseNoHeader(t *testing.T) {
 	t.Parallel()
 
 	r := chi.NewRouter()
-	r.Get("/", ip.Get)
+	r.Get("/", ip.Parse)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusBadRequest, rr.Code, "should return a 400 status")
+	assert.Equal(t, http.StatusInternalServerError, rr.Code, "should return a 500")
 }
 
-func TestGetMultipleIp(t *testing.T) {
+func TestParseMultipleIp(t *testing.T) {
 	t.Parallel()
 
 	r := chi.NewRouter()
-	r.Get("/", ip.Get)
+	r.Get("/", ip.Parse)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124,10.0.0.1")
@@ -71,15 +71,15 @@ func TestGetMultipleIp(t *testing.T) {
 	assert.Equal(t, "192.168.1.124", rr.Body.String(), "should return an ip address")
 }
 
-func TestGetNoIp(t *testing.T) {
+func TestParseNoIp(t *testing.T) {
 	t.Parallel()
 
 	r := chi.NewRouter()
-	r.Get("/", ip.Get)
+	r.Get("/", ip.Parse)
 
 	req, _ := http.NewRequest("GET", "/", nil)
 	rr := httptest.NewRecorder()
 
 	r.ServeHTTP(rr, req)
-	assert.Equal(t, http.StatusBadRequest, rr.Code, "should return a 400 status")
+	assert.Equal(t, http.StatusInternalServerError, rr.Code, "should return a 500")
 }
