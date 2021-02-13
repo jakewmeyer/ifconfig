@@ -2,6 +2,8 @@
 .env
 
 ifconfig
+coverage.lcov
+coverage.out
 
 ### Go ###
 # Binaries for programs and plugins
