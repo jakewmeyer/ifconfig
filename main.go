@@ -3,7 +3,8 @@ package main
 import (
 	"context"
 	"errors"
-	"log"
+	"go.uber.org/zap"
+	"github.com/joho/godotenv"
 	"net/http"
 	"os"
 	"os/signal"
@@ -14,13 +15,17 @@ import (
 const ContextTimeout = 5 * time.Second
 
 func main() {
+	err := godotenv.Load()
+  if err != nil {
+		panic("Error loading .env file")
+  }
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7000"
 	}
 	listenAddress := ":" + port
 
-	server, err := newServer(listenAddress)
+	s, err := newServer(listenAddress)
 	if err != nil {
 		panic(err)
 	}
@@ -30,25 +35,25 @@ func main() {
 	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
 
 	go func() {
-		if err := server.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			log.Panic(err)
+		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.logger.Fatal(err.Error())
 		}
 	}()
-	log.Printf("Server started on: %v", port)
+	s.logger.Info("Server started", zap.String("port", port))
 
 	<-stop
 
-	log.Print("Starting graceful shutdown...")
+	s.logger.Info("Starting graceful shutdown...")
 
 	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
 
 	defer func() {
-		_ = server.logger.Sync()
+		_ = s.logger.Sync()
 		cancel()
-		log.Print("Server shutdown gracefully")
+		s.logger.Info("Server shutdown gracefully")
 	}()
 
-	if shutdownErr := server.srv.Shutdown(ctx); shutdownErr != nil {
-		log.Panicf("Server shutdown failed: %+v", shutdownErr)
+	if shutdownErr := s.srv.Shutdown(ctx); shutdownErr != nil {
+		s.logger.Fatal("Server shutdown failed:", zap.String("error", shutdownErr.Error()))
 	}
 }

@@ -1,12 +1,13 @@
 package main
 
 import (
-	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 )
 
 type server struct {
@@ -16,14 +17,22 @@ type server struct {
 }
 
 func newServer(listenAddr string) (*server, error) {
-	logger, err := zap.NewProduction()
+	env := os.Getenv("GO_ENV")
+	var config zap.Config
+	if env == "production" {
+		config = zap.NewProductionConfig()
+	} else {
+		config = zap.NewDevelopmentConfig()
+		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+	}
+	logger, err := config.Build()
 	if err != nil {
-		log.Panicf("Can't initialize zap logger: %v", err)
+		logger.Fatal(err.Error())
 	}
 
 	errorLog, err := zap.NewStdLogAt(logger, zap.ErrorLevel)
 	if err != nil {
-		log.Panicf("Can't initialize zap error logger: %v", err)
+		logger.Fatal(err.Error())
 	}
 
 	server := &server{
