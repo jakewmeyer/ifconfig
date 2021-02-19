@@ -11,7 +11,7 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o ifconfig 
 # Small final image
 FROM alpine:latest
 LABEL maintainer="jakewmeyer@gmail.com"
-ENV APP_ENV production
+ENV GO_ENV=production
 EXPOSE 7000
 USER guest
 ENTRYPOINT ["/ifconfig"]

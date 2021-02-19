@@ -15,10 +15,9 @@ import (
 const ContextTimeout = 5 * time.Second
 
 func main() {
-	err := godotenv.Load()
-  if err != nil {
+	if err := godotenv.Load(); err != nil && !os.IsNotExist(err) {
 		panic("Error loading .env file")
-  }
+	}
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "7000"
