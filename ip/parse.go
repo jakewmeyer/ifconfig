@@ -25,12 +25,8 @@ func Parse(w http.ResponseWriter, r *http.Request) {
 	if _, ok := r.URL.Query()["json"]; ok {
 		w.Header().Set("Content-Type", "application/json")
 
-		err := json.NewEncoder(w).Encode(Address{IP: ip})
-
-		if err != nil {
-			http.Error(w, "Invalid Request", http.StatusInternalServerError)
-			return
-		}
+		// ip will always be encodeable
+		_ = json.NewEncoder(w).Encode(Address{IP: ip})
 
 		return
 	}
