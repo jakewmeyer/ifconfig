@@ -1,5 +1,5 @@
 # Builder image
-FROM golang:1.15-alpine
+FROM golang:1.16-alpine
 RUN apk --update add upx
 WORKDIR /
 COPY . .
