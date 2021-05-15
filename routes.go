@@ -1,35 +1,33 @@
 package main
 
 import (
-	"ifconfig/logger"
 	"github.com/go-chi/chi"
 	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/cors"
 	"github.com/unrolled/secure"
-	"ifconfig/ip"
 )
 
 func routes(s *server) *chi.Mux {
 	// Middleware
-	s.router.Use(middleware.RequestID)
-	s.router.Use(logger.Logger(s.logger))
-	s.router.Use(middleware.Recoverer)
+	s.Router.Use(middleware.RequestID)
+	s.Router.Use(logger(s.Logger))
+	s.Router.Use(middleware.Recoverer)
 
 	// Security headers
-	s.router.Use(secure.New(secure.Options{
+	s.Router.Use(secure.New(secure.Options{
 		FrameDeny:             true,
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
 		ContentSecurityPolicy: "default-src $NONCE",
 	}).Handler)
 
-	s.router.Use(middleware.Heartbeat("/health"))
-	s.router.Use(middleware.Compress(5))
-	s.router.Use(middleware.RealIP)
-	s.router.Use(middleware.RedirectSlashes)
+	s.Router.Use(middleware.Heartbeat("/health"))
+	s.Router.Use(middleware.Compress(5))
+	s.Router.Use(middleware.RealIP)
+	s.Router.Use(middleware.RedirectSlashes)
 
 	// CORS
-	s.router.Use(cors.Handler(cors.Options{
+	s.Router.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET"},
 		AllowedHeaders:   []string{},
@@ -37,7 +35,7 @@ func routes(s *server) *chi.Mux {
 		AllowCredentials: false,
 	}))
 
-	s.router.Get("/", ip.Parse)
+	s.Router.Get("/", parseIp(s))
 
-	return s.router
+	return s.Router
 }

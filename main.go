@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"errors"
-	"go.uber.org/zap"
 	"github.com/joho/godotenv"
+	"go.uber.org/zap"
 	"net/http"
 	"os"
 	"os/signal"
@@ -24,35 +24,30 @@ func main() {
 	}
 	listenAddress := ":" + port
 
-	s, err := newServer(listenAddress)
+	s, err := new(listenAddress)
 	if err != nil {
 		panic(err)
 	}
 
-	// Graceful Shutdown
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
-
 	go func() {
-		if err := s.srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
-			s.logger.Fatal(err.Error())
+		s.Logger.Info("Server started", zap.String("port", port))
+		if err := s.Srv.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			s.Logger.Fatal(err.Error())
 		}
 	}()
-	s.logger.Info("Server started", zap.String("port", port))
 
-	<-stop
-
-	s.logger.Info("Starting graceful shutdown...")
-
+	// Graceful Shutdown
+	shutdown := make(chan os.Signal, 1)
+	signal.Notify(shutdown, os.Interrupt, syscall.SIGINT, syscall.SIGTERM)
+	<-shutdown
+	s.Logger.Info("Starting graceful shutdown...")
 	ctx, cancel := context.WithTimeout(context.Background(), ContextTimeout)
-
-	defer func() {
-		_ = s.logger.Sync()
-		cancel()
-		s.logger.Info("Server shutdown gracefully")
-	}()
-
-	if shutdownErr := s.srv.Shutdown(ctx); shutdownErr != nil {
-		s.logger.Fatal("Server shutdown failed:", zap.String("error", shutdownErr.Error()))
+	if shutdownErr := s.Srv.Shutdown(ctx); shutdownErr != nil {
+		s.Logger.Fatal("Server shutdown failed:", zap.String("error", shutdownErr.Error()))
 	}
+	defer func() {
+		_ = s.Logger.Sync()
+		cancel()
+		s.Logger.Info("Server shutdown gracefully")
+	}()
 }

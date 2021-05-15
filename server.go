@@ -1,23 +1,24 @@
 package main
 
 import (
-	"net/http"
-	"os"
-	"time"
-
 	"github.com/go-chi/chi"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
+	"net/http"
+	"os"
+	"time"
 )
 
 type server struct {
-	router *chi.Mux
-	logger *zap.Logger
-	srv    *http.Server
+	Router *chi.Mux
+	Logger *zap.Logger
+	Srv    *http.Server
 }
 
-func newServer(listenAddr string) (*server, error) {
+// New creates a new server
+func new(listenAddr string) (*server, error) {
 	env := os.Getenv("GO_ENV")
+
 	var config zap.Config
 	if env == "production" {
 		config = zap.NewProductionConfig()
@@ -27,20 +28,20 @@ func newServer(listenAddr string) (*server, error) {
 	}
 	logger, err := config.Build()
 	if err != nil {
-		logger.Fatal(err.Error())
+		return nil, err
 	}
 
 	errorLog, err := zap.NewStdLogAt(logger, zap.ErrorLevel)
 	if err != nil {
-		logger.Fatal(err.Error())
+		return nil, err
 	}
 
 	server := &server{
-		router: chi.NewRouter(),
-		logger: logger,
+		Router: chi.NewRouter(),
+		Logger: logger,
 	}
 
-	server.srv = &http.Server{
+	server.Srv = &http.Server{
 		Addr:         listenAddr,
 		Handler:      routes(server),
 		ErrorLog:     errorLog,
