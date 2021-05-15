@@ -35,7 +35,7 @@ func routes(s *server) *chi.Mux {
 		AllowCredentials: false,
 	}))
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 
 	return s.Router
 }
