@@ -27,7 +27,7 @@ func executeRequest(req *http.Request) *httptest.ResponseRecorder {
 func TestReturnPlaintext(t *testing.T) {
 	t.Parallel()
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
 	res := executeRequest(req)
@@ -39,7 +39,7 @@ func TestReturnPlaintext(t *testing.T) {
 func TestParseJson(t *testing.T) {
 	t.Parallel()
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 	req, _ := http.NewRequest("GET", "/?json", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124")
 	res := executeRequest(req)
@@ -51,7 +51,7 @@ func TestParseJson(t *testing.T) {
 func TestParseNoHeader(t *testing.T) {
 	t.Parallel()
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 	req, _ := http.NewRequest("GET", "/", nil)
 	res := executeRequest(req)
 
@@ -61,7 +61,7 @@ func TestParseNoHeader(t *testing.T) {
 func TestParseMultipleIp(t *testing.T) {
 	t.Parallel()
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 	req, _ := http.NewRequest("GET", "/", nil)
 	req.Header.Set("x-forwarded-for", "192.168.1.124,10.0.0.1")
 	res := executeRequest(req)
@@ -73,7 +73,7 @@ func TestParseMultipleIp(t *testing.T) {
 func TestParseNoIp(t *testing.T) {
 	t.Parallel()
 
-	s.Router.Get("/", parseIp(s))
+	s.Router.Get("/", parseIP(s))
 	req, _ := http.NewRequest("GET", "/", nil)
 	res := executeRequest(req)
 

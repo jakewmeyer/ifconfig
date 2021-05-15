@@ -26,7 +26,7 @@ jobs:
       uses: golangci/golangci-lint-action@v2
       with:
         version: latest
-        args: -E govet,bodyclose,misspell,gocyclo,dupl,golint,unconvert,gocritic,interfacer
+        args: -E govet,bodyclose,misspell,gocyclo,dupl,unconvert,gocritic,revive
     - name: Run tests
       run: go test -v -covermode=count -coverprofile=coverage.out ./...
     - name: Convert coverage to lcov

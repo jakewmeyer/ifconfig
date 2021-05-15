@@ -13,8 +13,8 @@ type Address struct {
 	IP net.IP `json:"ip"`
 }
 
-// parseIp returns a valid IP address from an x-forwarded-for header.
-func parseIp(s *server) http.HandlerFunc {
+// parseIP returns a valid IP address from an x-forwarded-for header.
+func parseIP(s *server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
 		if ip == nil {
