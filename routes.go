@@ -18,7 +18,12 @@ func routes(s *server) *chi.Mux {
 		FrameDeny:             true,
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
-		ContentSecurityPolicy: "default-src $NONCE",
+		ContentSecurityPolicy: "default-src 'none'; frame-ancestors 'none'",
+		ReferrerPolicy:        "same-origin",
+		SSLRedirect:           true,
+		STSSeconds:            31536000,
+		STSIncludeSubdomains:  true,
+		IsDevelopment:         s.IsDevelopment,
 	}).Handler)
 
 	s.Router.Use(middleware.Heartbeat("/health"))

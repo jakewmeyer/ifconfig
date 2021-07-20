@@ -10,9 +10,10 @@ import (
 )
 
 type server struct {
-	Router *chi.Mux
-	Logger *zap.Logger
-	Srv    *http.Server
+	Router        *chi.Mux
+	Logger        *zap.Logger
+	Srv           *http.Server
+	IsDevelopment bool
 }
 
 // New creates a new server
@@ -20,11 +21,14 @@ func new(listenAddr string) (*server, error) {
 	env := os.Getenv("GO_ENV")
 
 	var config zap.Config
+	var isDevelopment bool
 	if env == "production" {
 		config = zap.NewProductionConfig()
+		isDevelopment = false
 	} else {
 		config = zap.NewDevelopmentConfig()
 		config.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
+		isDevelopment = true
 	}
 	logger, err := config.Build()
 	if err != nil {
@@ -37,8 +41,9 @@ func new(listenAddr string) (*server, error) {
 	}
 
 	server := &server{
-		Router: chi.NewRouter(),
-		Logger: logger,
+		Router:        chi.NewRouter(),
+		Logger:        logger,
+		IsDevelopment: isDevelopment,
 	}
 
 	server.Srv = &http.Server{
