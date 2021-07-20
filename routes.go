@@ -20,7 +20,6 @@ func routes(s *server) *chi.Mux {
 		BrowserXssFilter:      true,
 		ContentSecurityPolicy: "default-src 'none'; frame-ancestors 'none'",
 		ReferrerPolicy:        "same-origin",
-		SSLRedirect:           true,
 		STSSeconds:            31536000,
 		STSIncludeSubdomains:  true,
 		IsDevelopment:         s.IsDevelopment,
