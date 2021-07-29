@@ -16,6 +16,7 @@ type Address struct {
 // parseIP returns a valid IP address from an x-forwarded-for header.
 func parseIP(s *server) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		s.Logger.Info(r.Header.Get("X-Forwarded-For"))
 		ip := net.ParseIP(strings.Split(r.Header.Get("X-Forwarded-For"), ",")[0])
 		if ip == nil {
 			http.Error(w, "Error parsing IP address", http.StatusInternalServerError)
