@@ -40,10 +40,10 @@ pub async fn get_ip_json(req: HttpRequest) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{test, App, http};
+    use actix_web::{test, App, web::Bytes};
 
     #[test]
-    fn test_parse_ip_from_request() {
+    async fn test_parse_ip_from_request() {
         let input = "192.168.1.1";
         let expected = IpAddr::from_str(input).unwrap();
         let req = test::TestRequest::default()
@@ -72,14 +72,20 @@ mod tests {
     #[test]
     async fn test_get_ip_plaintext() {
         let input = "192.168.1.1";
-        let expected = IpAddr::from_str(input).unwrap();
         let app = test::init_service(App::new().service(get_ip_plaintext)).await;
         let req = test::TestRequest::get().uri("/")
             .insert_header(("X-Forwarded-For", input))
             .to_request();
-        let res = test::call_service(&app, req).await;
-        assert!(res.status().eq(&http::StatusCode::OK));
-        assert_eq!(res.response().body(), format!("{}", expected));
+        let res = test::call_and_read_body(&app, req).await;
+        assert_eq!(res, Bytes::from_static(input.as_bytes()));
+    }
+
+    #[test]
+    async fn test_get_ip_plaintext_no_ip() {
+        let app = test::init_service(App::new().service(get_ip_plaintext)).await;
+        let req = test::TestRequest::get().uri("/").to_request();
+        let res = test::call_and_read_body(&app, req).await;
+        assert_eq!(res, Bytes::from_static("No IP address found".as_bytes()));
     }
 
     #[test]
@@ -93,4 +99,12 @@ mod tests {
         let res: IpResponse = test::call_and_read_body_json(&app, req).await;
         assert_eq!(res.ip, expected);
     }
+
+    #[test]
+    async fn test_get_ip_json_no_ip() {
+        let app = test::init_service(App::new().service(get_ip_json)).await;
+        let req = test::TestRequest::get().uri("/json").to_request();
+        let res = test::call_and_read_body(&app, req).await;
+        assert_eq!(res, Bytes::from_static("No IP address found".as_bytes()));
+    }       
 }
