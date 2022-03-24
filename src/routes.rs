@@ -40,7 +40,7 @@ pub async fn get_ip_json(req: HttpRequest) -> impl Responder {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use actix_web::{test, App, web::Bytes};
+    use actix_web::{test, web::Bytes, App};
 
     #[test]
     async fn test_parse_ip_from_request() {
@@ -73,7 +73,8 @@ mod tests {
     async fn test_get_ip_plaintext() {
         let input = "192.168.1.1";
         let app = test::init_service(App::new().service(get_ip_plaintext)).await;
-        let req = test::TestRequest::get().uri("/")
+        let req = test::TestRequest::get()
+            .uri("/")
             .insert_header(("X-Forwarded-For", input))
             .to_request();
         let res = test::call_and_read_body(&app, req).await;
@@ -93,7 +94,8 @@ mod tests {
         let input = "192.168.1.1";
         let expected = IpAddr::from_str(input).unwrap();
         let app = test::init_service(App::new().service(get_ip_json)).await;
-        let req = test::TestRequest::get().uri("/json")
+        let req = test::TestRequest::get()
+            .uri("/json")
             .insert_header(("X-Forwarded-For", input))
             .to_request();
         let res: IpResponse = test::call_and_read_body_json(&app, req).await;
@@ -106,5 +108,5 @@ mod tests {
         let req = test::TestRequest::get().uri("/json").to_request();
         let res = test::call_and_read_body(&app, req).await;
         assert_eq!(res, Bytes::from_static("No IP address found".as_bytes()));
-    }       
+    }
 }
