@@ -1,5 +1,5 @@
 use actix_web::{get, HttpRequest, HttpResponse, Responder};
-use anyhow::Result;
+use miette::Result;
 use serde::{Deserialize, Serialize};
 use std::{net::IpAddr, str::FromStr};
 
@@ -41,6 +41,7 @@ pub async fn get_ip_json(req: HttpRequest) -> impl Responder {
 mod tests {
     use super::*;
     use actix_web::{test, web::Bytes, App};
+    use pretty_assertions::assert_eq;
 
     #[test]
     async fn test_parse_ip_from_request() {
