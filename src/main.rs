@@ -1,13 +1,12 @@
 #![deny(clippy::all)]
 
-use actix_web::{
-    middleware::{Compress, NormalizePath},
-    App, HttpServer,
-};
-use miette::{IntoDiagnostic, Result};
-use tracing_actix_web::TracingLogger;
+use std::net::SocketAddr;
 
-mod errors;
+use anyhow::Result;
+use axum::{routing::get, Router};
+use tracing::info;
+
+mod error;
 mod routes;
 
 #[tokio::main]
@@ -16,19 +15,15 @@ async fn main() -> Result<()> {
     tracing_subscriber::fmt::init();
     let host = std::env::var("HOST").unwrap_or_else(|_| "127.0.0.1".to_string());
     let port = std::env::var("PORT").unwrap_or_else(|_| "7000".to_string());
-    let addr = format!("{}:{}", host, port);
-    HttpServer::new(|| {
-        App::new()
-            .wrap(TracingLogger::default())
-            .wrap(Compress::default())
-            .wrap(NormalizePath::trim())
-            .service(routes::get_ip_plaintext)
-            .service(routes::get_ip_json)
-    })
-    .bind(addr)
-    .into_diagnostic()?
-    .run()
-    .await
-    .into_diagnostic()?;
+    let addr: SocketAddr = format!("{}:{}", host, port).parse().unwrap();
+
+    let app = Router::new()
+        .route("/", get(routes::get_ip_plaintext))
+        .route("/json", get(routes::get_ip_json));
+
+    info!("Listening on {}", addr);
+    axum::Server::try_bind(&addr)?
+        .serve(app.into_make_service())
+        .await?;
     Ok(())
 }
