@@ -26,13 +26,10 @@ impl IntoResponse for Error {
     fn into_response(self) -> Response {
         match self {
             Self::Anyhow(ref e) => {
-                error!("Generic error: {:?}", e)
+                error!("Anyhow error: {:?}", e)
             }
-
-            // Other errors get mapped normally.
-            _ => (),
+            Error::NotFound => (),
         }
-
         (self.status_code(), self.to_string()).into_response()
     }
 }
