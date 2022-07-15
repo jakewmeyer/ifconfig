@@ -86,4 +86,13 @@ mod tests {
         let res = parse_ip_from_request(req);
         assert_eq!(res.unwrap(), expected);
     }
+
+    #[tokio::test]
+    async fn no_ip_found() {
+        let req = Request::builder().uri("/").body(Body::empty()).unwrap();
+        let res = parse_ip_from_request(req).err().unwrap();
+        assert!(matches!(res, Error::NotFound));
+        assert_eq!(res.status_code(), StatusCode::NOT_FOUND);
+        assert_eq!(res.to_string(), String::from("No IP address found"));
+    }
 }

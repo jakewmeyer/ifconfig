@@ -14,7 +14,7 @@ pub enum Error {
 }
 
 impl Error {
-    fn status_code(&self) -> StatusCode {
+    pub fn status_code(&self) -> StatusCode {
         match self {
             Self::NotFound => StatusCode::NOT_FOUND,
             Self::Anyhow(_) => StatusCode::INTERNAL_SERVER_ERROR,
