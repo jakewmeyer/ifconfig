@@ -7,7 +7,7 @@ ENV UID=10001
 RUN adduser \
     --disabled-password \
     --gecos "" \
-    --home "/nonexistent" \
+    --home "/nohomeforyou" \
     --shell "/sbin/nologin" \
     --no-create-home \
     --uid "${UID}" \
@@ -23,4 +23,4 @@ COPY --from=builder /etc/group /etc/group
 WORKDIR /ifconfig
 COPY --from=builder /ifconfig/target/x86_64-unknown-linux-musl/release/ifconfig ./
 USER appuser:appuser
-CMD ["/ifconfig/ifconfig"]
+ENTRYPOINT ["/ifconfig/ifconfig"]
