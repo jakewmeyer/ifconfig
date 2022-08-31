@@ -1,4 +1,4 @@
-# ifconfig
+# ifconfig - Public IP address API
 
 [![cicd](https://github.com/jakewmeyer/ifconfig/workflows/CICD/badge.svg)](https://github.com/jakewmeyer/ifconfig/actions?query=workflow%3ACICD)
 
@@ -28,6 +28,8 @@ curl -s 'https://ifconfig.jakemeyer.sh/json' | jq
 
 ### Docker Compose v3+
 
+`docker-compose.yml`
+
 ```yaml
 services:
   ifconfig:
@@ -36,6 +38,10 @@ services:
     ports:
       - "7000:7000"
     restart: "unless-stopped"
+```
+
+```bash
+docker-compose up
 ```
 
 ### Docker run

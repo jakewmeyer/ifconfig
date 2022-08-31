@@ -17,6 +17,8 @@ struct IpResponse {
     ip: IpAddr,
 }
 
+/// Attempt to parse `x-real-ip` first, then fall back to `x-forwarded-for`
+/// if no real ip was included
 fn parse_ip_from_request(req: Request<Body>) -> Result<IpAddr, Error> {
     let headers = req.headers();
 
@@ -39,16 +41,19 @@ fn parse_ip_from_request(req: Request<Body>) -> Result<IpAddr, Error> {
     Err(Error::NotFound)
 }
 
+/// Handler for GET /
 pub async fn get_ip_plaintext(req: Request<Body>) -> Result<impl IntoResponse, Error> {
     let ip = parse_ip_from_request(req)?;
     Ok(format!("{}", ip))
 }
 
+/// Handler for GET /json
 pub async fn get_ip_json(req: Request<Body>) -> Result<impl IntoResponse, Error> {
     let ip = parse_ip_from_request(req)?;
     Ok(Json(IpResponse { ip }))
 }
 
+// Handler for GET /health
 pub async fn health() -> impl IntoResponse {
     StatusCode::OK
 }

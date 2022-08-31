@@ -2,6 +2,10 @@
 name = "ifconfig"
 version = "1.0.0"
 edition = "2021"
+description = "Public IP address API"
+license = "Apache-2.0"
+repository = "https://github.com/jakewmeyer/ifconfig"
+homepage = "https://github.com/jakewmeyer/ifconfig"
 
 [dependencies]
 anyhow = "1.0.62"

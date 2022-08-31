@@ -1,3 +1,6 @@
+//! http contains a serve function that constructs a new
+//! Axum app from a Config and attempts to serve it
+
 use crate::config::Config;
 use anyhow::{Context, Result};
 use axum::{routing::get, Router};
@@ -13,13 +16,16 @@ use tracing::info;
 mod error;
 mod routes;
 
+/// Creates a signal handler for graceful shutdown.
 async fn shutdown_signal() {
+    // Handle SIGINT
     let ctrl_c = async {
         signal::ctrl_c()
             .await
             .expect("failed to install Ctrl+C handler");
     };
 
+    // Handle SIGTERM
     #[cfg(unix)]
     let terminate = async {
         signal::unix::signal(signal::unix::SignalKind::terminate())
@@ -36,9 +42,12 @@ async fn shutdown_signal() {
         _ = terminate => {},
     }
 
+    // Any other graceful shutdow logic goes here
     info!("Signal received, starting graceful shutdown...");
 }
 
+/// Create and serve an Axum server with pre-registered routes
+/// and middleware
 pub async fn serve(config: Config) -> Result<()> {
     let addr: SocketAddr = format!("{}:{}", config.host, config.port).parse().unwrap();
 
