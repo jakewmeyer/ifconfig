@@ -10,7 +10,7 @@ homepage = "https://github.com/jakewmeyer/ifconfig"
 [dependencies]
 anyhow = "1"
 axum = { version = "0.5.16", features = ["headers"] }
-clap = { version = "3.2.22", features = ["derive", "env"] }
+clap = { version = "4.0.15", features = ["derive", "env"] }
 dotenv = "0.15.0"
 log = "0.4.17"
 owasp-headers = "0.1.2"
