@@ -9,7 +9,7 @@ homepage = "https://github.com/jakewmeyer/ifconfig"
 
 [dependencies]
 anyhow = "1"
-axum = { version = "0.5.16", features = ["headers"] }
+axum = { version = "0.6.0", features = ["headers"] }
 clap = { version = "3.2.22", features = ["derive", "env"] }
 dotenv = "0.15.0"
 log = "0.4.17"
