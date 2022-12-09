@@ -55,12 +55,12 @@ pub async fn serve(config: Config) -> Result<()> {
         .route("/", get(routes::get_ip_plaintext))
         .route("/json", get(routes::get_ip_json))
         .route("/health", get(routes::health))
-        .layer(CompressionLayer::new())
         .layer(TraceLayer::new_for_http())
+        .layer(CompressionLayer::new())
         .layer(CorsLayer::new())
-        .layer(DefaultHeadersLayer::new(owasp_headers::headers()))
+        .layer(PropagateRequestIdLayer::x_request_id())
         .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .layer(PropagateRequestIdLayer::x_request_id());
+        .layer(DefaultHeadersLayer::new(owasp_headers::headers()));
 
     info!("Listening on {}", addr);
     axum::Server::try_bind(&addr)?

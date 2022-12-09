@@ -1,7 +1,8 @@
 //! Application config parameters
-//! 
+//!
 //! Config args can be passed through the command line, or passed
 //! via environment variables. Dotenv support is included in main.
+
 #[derive(clap::Parser)]
 pub struct Config {
     /// The host the server will bind to, any valid
