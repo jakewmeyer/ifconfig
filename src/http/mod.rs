@@ -2,11 +2,13 @@
 //! Axum app from a Config and attempts to serve it
 
 use crate::config::Config;
-use anyhow::{Context, Result};
+use anyhow::Result;
 use axum::{routing::get, Router};
 use std::net::SocketAddr;
-use tokio::signal;
-use tower_default_headers::DefaultHeadersLayer;
+use std::sync::Arc;
+use tokio::net::TcpListener;
+use tokio::{select, signal};
+use tokio_util::sync::CancellationToken;
 use tower_http::compression::CompressionLayer;
 use tower_http::cors::CorsLayer;
 use tower_http::request_id::{MakeRequestUuid, PropagateRequestIdLayer, SetRequestIdLayer};
@@ -16,8 +18,14 @@ use tracing::info;
 mod error;
 mod routes;
 
+#[derive(Clone)]
+pub struct ApiContext {
+    pub shutdown: CancellationToken,
+    pub config: Arc<Config>,
+}
+
 /// Creates a signal handler for graceful shutdown.
-async fn shutdown_signal() {
+async fn shutdown_signal(ctx: ApiContext) {
     // Handle SIGINT
     let ctrl_c = async {
         signal::ctrl_c()
@@ -37,19 +45,28 @@ async fn shutdown_signal() {
     #[cfg(not(unix))]
     let terminate = std::future::pending::<()>();
 
-    tokio::select! {
+    select! {
         _ = ctrl_c => {},
         _ = terminate => {},
     }
 
-    // Any other graceful shutdow logic goes here
-    info!("Signal received, starting graceful shutdown...");
+    info!("Starting graceful server cleanup...");
+
+    // Trigger cancellation token
+    ctx.shutdown.cancel();
+
+    info!("Starting hyper graceful shutdown...");
 }
 
 /// Create and serve an Axum server with pre-registered routes
 /// and middleware
 pub async fn serve(config: Config) -> Result<()> {
     let addr: SocketAddr = format!("{}:{}", config.host, config.port).parse().unwrap();
+
+    let state = ApiContext {
+        shutdown: CancellationToken::new(),
+        config: Arc::new(config),
+    };
 
     let app = Router::new()
         .route("/", get(routes::get_ip_plaintext))
@@ -59,13 +76,17 @@ pub async fn serve(config: Config) -> Result<()> {
         .layer(CompressionLayer::new())
         .layer(CorsLayer::new())
         .layer(PropagateRequestIdLayer::x_request_id())
-        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid))
-        .layer(DefaultHeadersLayer::new(owasp_headers::headers()));
+        .layer(SetRequestIdLayer::x_request_id(MakeRequestUuid));
 
-    info!("Listening on {}", addr);
-    axum::Server::try_bind(&addr)?
-        .serve(app.into_make_service())
-        .with_graceful_shutdown(shutdown_signal())
-        .await
-        .context("Failed to start http server")
+    let listener = TcpListener::bind(addr).await?;
+    info!("Listening on http://{}", addr);
+
+    axum::serve(
+        listener,
+        app.into_make_service_with_connect_info::<SocketAddr>(),
+    )
+    .with_graceful_shutdown(shutdown_signal(state.clone()))
+    .await?;
+
+    Ok(())
 }
